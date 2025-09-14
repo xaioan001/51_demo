@@ -1,0 +1,124 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              09/13/2025 19:44:18 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\work\KEIL\ARM\C51\BIN\C51.EXE APP\main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\APP;.\DRIVER;.\STC8HL
+                    -ib) DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include "STC8H.H"
+   2          #include "STC8G_H_GPIO.h"
+   3          #include "STC8G_H_Delay.h"
+   4          #include "config.h"
+   5          #include "BEEP.h"
+   6          #include "key.h"
+   7          #include "type_def.h"
+   8          #include "STC8G_H_Exti.h"
+   9          #include "Digitalled.h"
+  10          #include "STC8G_H_Timer.h"
+  11          #include "STC8G_H_UART.h"
+  12          #include "uart.h"
+  13          #include "STC8G_H_ADC.h"
+  14          #include "filtering.h"
+  15          #include "STC8G_H_I2C.h"
+  16          #include "IIC.h"
+  17          u8 code ledNum[]={0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
+  18          u8 xdata arr[30];
+  19          void main()
+  20          { 
+  21   1        u16 ADC_TEMP;
+  22   1        u8 key_val=0,at24dat,writeNum,readNum,clear=255;
+  23   1        
+  24   1        
+  25   1        P_SW2 |= 0x80;/* 扩展寄存器访问使能 */  
+  26   1        GPIO_config(); 
+  27   1        beep_init();
+  28   1        key_init();
+  29   1        Exti_config();
+  30   1        Timer_config();
+  31   1        UART_config();
+  32   1        ADC_config();
+  33   1        I2C_config();
+  34   1        EA=1;
+  35   1      
+  36   1        while(1)
+  37   1        {
+  38   2        
+  39   2            ADC_TEMP = IIC_60S();
+  40   2          
+  41   2          key_val=SingleKey();
+  42   2          if(key_val==1)
+  43   2          {
+  44   3            IapErase(arr[30]);
+  45   3            for(writeNum=0;writeNum<10;writeNum++)
+  46   3            {
+  47   4              at24dat=rand();
+  48   4              lapProgram(arr[writeNum], at24dat);
+  49   4      //        I2C_WriteNbyte(DEV_ADDR, writeNum,&at24dat, 1);       
+  50   4              printf("writeNum %bu rand = %bu\n",writeNum,at24dat);
+  51   4              delay_ms(1000);
+  52   4            }
+  53   3           if(writeNum>=10)
+  54   3            {
+C51 COMPILER V9.60.0.0   MAIN                                                              09/13/2025 19:44:18 PAGE 2   
+
+  55   4                BeepMs(100);
+  56   4            }
+  57   3          }
+  58   2          if(key_val==2)
+  59   2          {
+  60   3                for(readNum=0;readNum<10;readNum++)
+  61   3                {     
+  62   4                      at24dat=IapRead(arr[readNum]);
+  63   4                      //I2C_ReadNbyte(DEV_ADDR, readNum, &at24dat,1);
+  64   4                      printf("readNum %bu rand = %bu\n",readNum,at24dat); 
+  65   4      //                for( i = 0; i < 100; i++)   // 刷新100次，大约1秒
+  66   4      //                {
+  67   4      //                    DisplayAnyNum(at24dat); // 显示数字
+  68   4      //                    delay_ms(10);           // 短暂延迟
+  69   4      //                }
+  70   4                    
+  71   4                      delay_ms(1000);           
+  72   4                }     
+  73   3                if(readNum>=10)
+  74   3                {
+  75   4                  BeepMs(100);
+  76   4                }
+  77   3          }             
+  78   2          if(key_val==3)
+  79   2            {
+  80   3              readNum=0;
+  81   3              writeNum=0;
+  82   3            }
+  83   2          if(key_val==4)
+  84   2          {
+  85   3            for(writeNum=0;writeNum<10;writeNum++)
+  86   3            {
+  87   4              I2C_WriteNbyte(DEV_ADDR, writeNum,&clear, 1);
+  88   4              printf("writeNum %bu rand = %bu\n",writeNum,clear);
+  89   4            }
+  90   3          }
+  91   2          
+  92   2          delay_ms(1);
+  93   2      //    uart1tx_uart2rx();
+  94   2          
+  95   2          DisplayAnyNum(ADC_TEMP);
+  96   2        }
+  97   1      }
+  98          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    312    ----
+   CONSTANT SIZE    =     57    ----
+   XDATA SIZE       =     30    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
