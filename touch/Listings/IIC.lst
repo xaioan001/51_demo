@@ -1,0 +1,176 @@
+C51 COMPILER V9.60.0.0   IIC                                                               09/15/2025 11:19:30 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE IIC
+OBJECT MODULE PLACED IN .\Objects\IIC.obj
+COMPILER INVOKED BY: D:\work\KEIL\ARM\C51\BIN\C51.EXE DRIVER\IIC.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\APP;.\DRIVER;.\STC8
+                    -HLib) DEBUG OBJECTEXTEND PRINT(.\Listings\IIC.lst) TABS(2) OBJECT(.\Objects\IIC.obj)
+
+line level    source
+
+   1          #include  "STC8G_H_I2C.h"
+   2          #include "stc8h.h"
+   3          #include "intrins.h"
+   4          #include "filtering.h"
+   5          #include "uart.h"
+   6          #include "STC8G_H_Delay.h"
+   7          #include "STC8G_H_ADC.h"
+   8          #include  "STC8G_H_Timer.h"
+   9          u32 sysT0tick;
+  10          u16 ADC_VAL;
+  11          u16 xdata adc_arr[50];
+  12          u16 xdata adc_val30[30];
+  13          u16 Data;
+  14          u8 data_low ;
+  15          u8 data_high;
+  16          u8 j;
+  17          /**
+  18          ***********************************************************
+  19          * @brief   外部IIC存储60s读取数据
+  20          * @param 
+  21          * @return  
+  22          ***********************************************************
+  23          */
+  24          u16 IIC_60S(void)
+  25          { 
+  26   1          if(time0IntNum-sysT0tick>60000)
+  27   1          {   sysT0tick=time0IntNum;
+  28   2              for(j=0;j<50;j++)
+  29   2              {
+  30   3                adc_arr[j]=Get_ADCResult(0);
+  31   3              }
+  32   2              sort(adc_arr,50);//数值排序
+  33   2              for(j=0;j<30;j++)
+  34   2              {
+  35   3              adc_val30[j]=adc_arr[j+10];
+  36   3              data_low = (u8)(adc_val30[j] & 0xFF);        // 低字节
+  37   3              data_high = (u8)((adc_val30[j] >> 8) & 0xFF); // 高字节
+  38   3              I2C_WriteNbyte(DEV_ADDR, j * 2, &data_low, 1);     // 寄存器地址 j*2
+  39   3              delay_ms(5); // AT24C02需要写入时间      
+  40   3              I2C_WriteNbyte(DEV_ADDR, j * 2 + 1, &data_high, 1); // 寄存器地址 j*2+1
+  41   3              delay_ms(5);
+  42   3              I2C_ReadNbyte(DEV_ADDR, j * 2, &data_low,1);
+  43   3              delay_ms(5);
+  44   3              I2C_ReadNbyte(DEV_ADDR, j * 2 + 1, &data_high,1);
+  45   3              Data = (u16)data_low|((u16)data_high << 8);
+  46   3              delay_ms(5);
+  47   3              printf("result: %d\n", Data);
+  48   3              
+  49   3            }
+  50   2          }
+  51   1        ADC_VAL=Median_Filter(adc_arr,50);
+  52   1        return ADC_VAL;
+  53   1      }
+  54          /**
+C51 COMPILER V9.60.0.0   IIC                                                               09/15/2025 11:19:30 PAGE 2   
+
+  55          ***********************************************************
+  56          * @brief   开启内部eep功能
+  57          * @param 
+  58          * @return  
+  59          ***********************************************************
+  60          */
+  61          void IapIdle()//关闭IAP
+  62          {
+  63   1        IAP_CONTR =0;
+  64   1        IAP_CMD=0;
+  65   1        IAP_TRIG=0;
+  66   1        IAP_ADDRH=0x80;
+  67   1        IAP_ADDRL=0;
+  68   1      }
+  69          /**
+  70          ***********************************************************
+  71          * @brief   读取内部eep数据
+  72          * @param 
+  73          * @return  
+  74          ***********************************************************
+  75          */
+  76          u16 IapRead(u16 addr)//读数据
+  77          {   u8 dat;
+  78   1          IAP_CONTR =0x80;
+  79   1          IAP_TPS= 24;
+  80   1          IAP_CMD=0x01;
+  81   1          IAP_ADDRL=addr;
+  82   1          IAP_ADDRH=addr>>8;
+  83   1          IAP_TRIG=0x5a;
+  84   1          IAP_TRIG=0xa5;
+  85   1          _nop_();
+  86   1          _nop_();
+  87   1          _nop_();
+  88   1          _nop_();
+  89   1          dat= IAP_DATA;
+  90   1          IapIdle();
+  91   1          return dat;
+  92   1      }
+  93          /**
+  94          ***********************************************************
+  95          * @brief   写入内部eep数据
+  96          * @param 
+  97          * @return  
+  98          ***********************************************************
+  99          */
+ 100          void lapProgram(u16 addr, u8 dat)//写数据
+ 101          {
+ 102   1        IAP_CONTR=0x80,
+ 103   1        IAP_TPS=24;
+ 104   1        IAP_CMD =0x02;
+ 105   1        IAP_ADDRL=addr;
+ 106   1        IAP_ADDRH=addr >> 8;
+ 107   1        IAP_DATA=dat;
+ 108   1        IAP_TRIG=0x5a;
+ 109   1        IAP_TRIG =0xa5;
+ 110   1          _nop_();
+ 111   1          _nop_();
+ 112   1          _nop_();
+ 113   1          _nop_();
+ 114   1        IapIdle();
+ 115   1      }
+ 116          /**
+C51 COMPILER V9.60.0.0   IIC                                                               09/15/2025 11:19:30 PAGE 3   
+
+ 117          ***********************************************************
+ 118          * @brief   擦除内部eep数据
+ 119          * @param 
+ 120          * @return  
+ 121          ***********************************************************
+ 122          */
+ 123          void IapErase(u16 addr)//擦除数据
+ 124          {
+ 125   1          IAP_CONTR=0x80;
+ 126   1          IAP_TPS=24;
+ 127   1          IAP_CMD =0x03;
+ 128   1          IAP_ADDRL =addr;
+ 129   1          IAP_ADDRH=addr>> 8;
+ 130   1          IAP_TRIG=0x5a;
+ 131   1          IAP_TRIG= 0xa5;
+ 132   1          _nop_();
+ 133   1          _nop_();
+ 134   1          _nop_();
+ 135   1          _nop_();
+ 136   1          IapIdle();
+ 137   1      }
+ 138          
+ 139          
+ 140          
+ 141          
+ 142          
+ 143          
+ 144          
+ 145          
+ 146          
+ 147          
+ 148          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    424    ----
+   CONSTANT SIZE    =     12    ----
+   XDATA SIZE       =    160    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

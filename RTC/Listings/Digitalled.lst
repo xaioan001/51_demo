@@ -1,0 +1,302 @@
+C51 COMPILER V9.60.0.0   DIGITALLED                                                        09/15/2025 16:32:39 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE DIGITALLED
+OBJECT MODULE PLACED IN .\Objects\Digitalled.obj
+COMPILER INVOKED BY: D:\work\KEIL\ARM\C51\BIN\C51.EXE DRIVER\Digitalled.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\APP;.\DRIVER
+                    -;.\STC8HLib) DEBUG OBJECTEXTEND PRINT(.\Listings\Digitalled.lst) TABS(2) OBJECT(.\Objects\Digitalled.obj)
+
+line level    source
+
+   1          #include "config.h"
+   2          #include "STC8G_H_Delay.h"
+   3          #include "type_def.h"
+   4          #define   SER595  P41
+   5          #define   RCK595  P76
+   6          #define   SCK595  P77
+   7          //extern u8 encoder_count1;
+   8          //extern u8 encoder_count2;
+   9          u8 i;
+  10          u8 code TableDU[]={0x3f,0x06,0x5b,0x4f,
+  11                             0x66,0x6d,0x7d,0x07,
+  12                             0x7f,0x6f,0x77,0x7c,
+  13                             0x39,0x5e,0x79,0x00};
+  14          u8 code TableWE[]={0xfe,0xfd,0xfb,0xf7,0xef,0xdf,0xbf,0x7f};  
+  15          
+  16          
+  17          
+  18          /**
+  19          ***********************************************************
+  20          * @brief 驱动595，写一个字节
+  21          * @param 
+  22          * @return 
+  23          ***********************************************************
+  24          */
+  25          void Hc595WriteByte(u8 Data)
+  26          {
+  27   1        u8 k;
+  28   1        for(k=0;k<8;k++)
+  29   1        {
+  30   2          SCK595=0;
+  31   2          Data=Data<<1;
+  32   2          SER595=CY;
+  33   2          SCK595=1;
+  34   2        }
+  35   1      }
+  36          /**
+  37          ***********************************************************
+  38          * @brief 让74H595输出
+  39          * @param 
+  40          * @return 
+  41          ***********************************************************
+  42          */
+  43          void DisplayNum(u8 num,u8 dat)
+  44          {
+  45   1        
+  46   1        Hc595WriteByte(TableDU[dat]);//必须先送段
+  47   1        Hc595WriteByte(TableWE[num-1]);
+  48   1        RCK595=0;
+  49   1        RCK595=1;
+  50   1      }
+  51          
+  52          /**
+  53          ***********************************************************
+  54          * @brief 显示任意5位数，65535以内
+C51 COMPILER V9.60.0.0   DIGITALLED                                                        09/15/2025 16:32:39 PAGE 2   
+
+  55          * @param disnum，要显示的数字
+  56          * @return 
+  57          ***********************************************************
+  58          */
+  59          //void DisplayAny1_Num(u32 disnum);
+  60          //{
+  61          //  long xdata qianwan,baiwan,shiwan,wan,qian,bai,shi,ge;
+  62          //  qianwan=disnum/10000000;
+  63          //  baiwan=disnum%10000000/1000000;
+  64          //  shiwan=disnum%1000000/100000;
+  65          //  wan = disnum %100000 /10000;
+  66          //  qian = disnum % 10000 / 1000;
+  67          //  bai = disnum % 1000 / 100;
+  68          //  shi = disnum % 100 / 10;
+  69          //  ge = disnum % 10;
+  70          //  if(qianwan != 0)
+  71          //  {
+  72          //    DisplayNum(1,qianwan);
+  73          //    delay_ms(1);
+  74          //  }
+  75          //  if((baiwan != 0)||(shiwan!=0))
+  76          //  {
+  77          //    DisplayNum(2,baiwan);
+  78          //    delay_ms(1);
+  79          //  } 
+  80          //  if((shiwan != 0)||(baiwan != 0)||(qianwan != 0))
+  81          //  {
+  82          //    DisplayNum(3,shiwan);
+  83          //    delay_ms(1);
+  84          //  }
+  85          //    
+  86          //  if((wan != 0)||(shiwan!=0)||(baiwan != 0)||(qianwan != 0))
+  87          //  {     
+  88          //      DisplayNum(4,wan);
+  89          //      delay_ms(1);
+  90          //  }
+  91          //  if((qian != 0) ||  (wan != 0)||(shiwan!=0)||(baiwan != 0)||(qianwan != 0))
+  92          //  {       
+  93          //      DisplayNum(5,qian);
+  94          //      delay_ms(1);
+  95          //  }
+  96          //  if((bai != 0) || (qian != 0) || (wan != 0)||(shiwan!=0)||(baiwan != 0)||(qianwan != 0))
+  97          //  {   
+  98          //    DisplayNum(6,bai);
+  99          //    delay_ms(1);
+ 100          //  }
+ 101          //   if((shi != 0) ||(bai != 0) || (qian != 0) || (wan != 0)||(baiwan != 0)||(shiwan!=0)||(qianwan != 0))
+ 102          //   {
+ 103          //     DisplayNum(7,shi);
+ 104          //     delay_ms(1);
+ 105          //   }  
+ 106          //    
+ 107          ////    if(ge<0)
+ 108          ////   {
+ 109          ////     
+ 110          ////     DisplayNum(8,ge);
+ 111          ////   }
+ 112          //     if(((encoder_count2-encoder_count1)/20)>0)
+ 113          //     {
+ 114          //       DisplayNum(7,16);
+ 115          //           delay_ms(1);
+ 116          
+C51 COMPILER V9.60.0.0   DIGITALLED                                                        09/15/2025 16:32:39 PAGE 3   
+
+ 117          //     }
+ 118          //     DisplayNum(8,ge);
+ 119          //  
+ 120          //}
+ 121          /**
+ 122          ***********************************************************
+ 123          * @brief 显示时间 时分秒
+ 124          * @param 
+ 125          * @return 
+ 126          ***********************************************************
+ 127          */
+ 128          void Display_time(u8 hour,u8 min,u8 sec)
+ 129          {
+ 130   1        u8 shi1,shi2,fen1,fen2,miao1,miao2;
+ 131   1        shi1  = hour/10;
+ 132   1        shi2  = hour%10;
+ 133   1        fen1  = min/10;
+ 134   1        fen2  = min%10;
+ 135   1        miao1 = sec/10;
+ 136   1        miao2 = sec%10;
+ 137   1        if(shi1)
+ 138   1        {
+ 139   2          DisplayNum(3,shi1);
+ 140   2          delay_ms(1);
+ 141   2        }
+ 142   1          if(shi2>=0)
+ 143   1        {
+ 144   2          DisplayNum(4,shi2);
+ 145   2          delay_ms(1);
+ 146   2        }
+ 147   1          if(fen1>=0)
+ 148   1        {
+ 149   2          DisplayNum(5,fen1);
+ 150   2          delay_ms(1);
+ 151   2        }
+ 152   1          if(fen2>=0)
+ 153   1        {
+ 154   2          DisplayNum(6,fen2);
+ 155   2          delay_ms(1);
+ 156   2        }
+ 157   1          if(miao1>=0)
+ 158   1        {
+ 159   2          DisplayNum(7,miao1);
+ 160   2          delay_ms(1);
+ 161   2        }
+ 162   1          if(miao2>=0)
+ 163   1        {
+ 164   2          DisplayNum(8,miao2);
+ 165   2          delay_ms(1);
+ 166   2        }
+ 167   1      
+ 168   1      }
+ 169          /**
+ 170          ***********************************************************
+ 171          * @brief 显示时间 年月日
+ 172          * @param 
+ 173          * @return 
+ 174          ***********************************************************
+ 175          */
+ 176           void Display_Day(u8 year,u8 month,u8 day)
+ 177          {
+ 178   1        u8 nian1,nian2,month1,month2,day1,day2;
+C51 COMPILER V9.60.0.0   DIGITALLED                                                        09/15/2025 16:32:39 PAGE 4   
+
+ 179   1        nian1  = year/10;
+ 180   1        nian2  = year%10;
+ 181   1        month1 = month/10;
+ 182   1        month2 = month%10;
+ 183   1        day1   = day/10;
+ 184   1        day2   = day%10;
+ 185   1        if(nian1)
+ 186   1        {
+ 187   2          DisplayNum(3,nian1);
+ 188   2          delay_ms(1);
+ 189   2        }
+ 190   1          if(nian2>=0)
+ 191   1        {
+ 192   2          DisplayNum(4,nian2);
+ 193   2          delay_ms(1);
+ 194   2        }
+ 195   1          if(month1>=0)
+ 196   1        {
+ 197   2          DisplayNum(5,month1);
+ 198   2          delay_ms(1);
+ 199   2        }
+ 200   1          if(month2>=0)
+ 201   1        {
+ 202   2          DisplayNum(6,month2);
+ 203   2          delay_ms(1);
+ 204   2        }
+ 205   1          if(day1>=0)
+ 206   1        {
+ 207   2          DisplayNum(7,day1);
+ 208   2          delay_ms(1);
+ 209   2        }
+ 210   1          if(day2>=0)
+ 211   1        {
+ 212   2          DisplayNum(8,day2);
+ 213   2          delay_ms(1);
+ 214   2        }
+ 215   1      
+ 216   1      }
+ 217           void DisplayAnyNum(u16 disnum)
+ 218          {
+ 219   1        u8 wan,qian,bai,shi,ge;
+ 220   1        wan = disnum / 10000;
+ 221   1        qian = disnum % 10000 / 1000;
+ 222   1        bai = disnum % 1000 / 100;
+ 223   1        shi = disnum % 100 / 10;
+ 224   1        ge = disnum % 10; 
+ 225   1        if(wan != 0)
+ 226   1        {
+ 227   2          DisplayNum(4,wan);
+ 228   2          delay_ms(1);
+ 229   2        }
+ 230   1          if((qian != 0) ||  (wan != 0))
+ 231   1        {
+ 232   2          DisplayNum(5,qian);
+ 233   2          delay_ms(1);
+ 234   2        }
+ 235   1            if((bai != 0) || (qian != 0) || (wan != 0))
+ 236   1        {
+ 237   2          DisplayNum(6,bai);
+ 238   2          delay_ms(1);
+ 239   2        }
+ 240   1          if((shi != 0) ||(bai != 0) || (qian != 0) || (wan != 0))  
+C51 COMPILER V9.60.0.0   DIGITALLED                                                        09/15/2025 16:32:39 PAGE 5   
+
+ 241   1        {
+ 242   2          DisplayNum(7,shi);
+ 243   2          delay_ms(1);
+ 244   2        }
+ 245   1          DisplayNum(8,ge);
+ 246   1          //delay_ms(10);
+ 247   1      }
+ 248          
+ 249          //void test_display(u8 disnum)
+ 250          //{   
+ 251          //    i++;
+ 252          //    DisplayNum(i,disnum);
+ 253          //    delay_ms(10);   
+ 254          //    if(i>=8)
+ 255          //    {
+ 256          //      i=0;
+ 257          //      delay_ms(10);     
+ 258          //    }
+ 259          //}
+ 260          
+ 261          
+ 262          
+ 263          
+ 264          
+ 265          
+ 266          
+ 267          
+ 268          
+ 269          
+ 270          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    591    ----
+   CONSTANT SIZE    =     24    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1      15
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
