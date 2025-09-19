@@ -1,0 +1,357 @@
+C51 COMPILER V9.60.0.0   LCD_DISPLAY                                                       09/18/2025 19:01:30 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE LCD_DISPLAY
+OBJECT MODULE PLACED IN .\Objects\LCD_DISPLAY.obj
+COMPILER INVOKED BY: D:\work\KEIL\ARM\C51\BIN\C51.EXE DRIVER\LCD_DISPLAY.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\APP;.
+                    -\DRIVER;.\STC8HLib) DEBUG OBJECTEXTEND PRINT(.\Listings\LCD_DISPLAY.lst) TABS(2) OBJECT(.\Objects\LCD_DISPLAY.obj)
+
+line level    source
+
+   1          #include "LCD_DISPLAY.h"
+   2          #include "LCD_BASE.h"
+   3          #include "STC8H.H"
+   4          #include "STC8G_H_Delay.h"
+   5          #include  "STC8H_RTC.h"
+   6          #include  "STC8G_H_SPI.h"
+   7          #include "type_def.h"
+   8          #include "config.h"
+   9          #include <stdio.h>
+  10          //extern u8 hour,min,sec;
+  11          /******************************************************************************
+  12                函数说明：LCD初始化函数
+  13                入口数据：无
+  14                返回值：  无
+  15          ******************************************************************************/
+  16          void LCD_Init(void)
+  17          {
+  18   1        LCD_RES=0;    // 复位液晶屏
+  19   1        delay_ms(200);
+  20   1        LCD_RES=1;  
+  21   1        delay_ms(200);
+  22   1        
+  23   1        LCD_WR_REG(0x11);           //Sleep out 
+  24   1        delay_ms(120);              //Delay 120ms 
+  25   1        LCD_WR_REG(0x36);
+  26   1      //  if(USE_HORIZONTAL==2)  // 横屏 ,如果想反过来显示，可激活这条语句
+  27   1      //    LCD_WR_DATA8(0x70);
+  28   1        if(USE_HORIZONTAL==3)
+  29   1        {
+  30   2          LCD_WR_DATA8(0xA0);  // 横屏 
+  31   2        }
+  32   1        
+  33   1        LCD_WR_REG(0x3A);     
+  34   1        LCD_WR_DATA8(0x05);
+  35   1      
+  36   1        LCD_WR_REG(0xB2);     
+  37   1        LCD_WR_DATA8(0x0C);
+  38   1        LCD_WR_DATA8(0x0C); 
+  39   1        LCD_WR_DATA8(0x00); 
+  40   1        LCD_WR_DATA8(0x33); 
+  41   1        LCD_WR_DATA8(0x33);       
+  42   1      
+  43   1        LCD_WR_REG(0xB7);     
+  44   1        LCD_WR_DATA8(0x35);
+  45   1      
+  46   1        LCD_WR_REG(0xBB);     
+  47   1        LCD_WR_DATA8(0x32); //Vcom=1.35V
+  48   1                
+  49   1        LCD_WR_REG(0xC2);
+  50   1        LCD_WR_DATA8(0x01);
+  51   1      
+  52   1        LCD_WR_REG(0xC3);     
+  53   1        LCD_WR_DATA8(0x15); //GVDD=4.8V  颜色深度
+  54   1              
+C51 COMPILER V9.60.0.0   LCD_DISPLAY                                                       09/18/2025 19:01:30 PAGE 2   
+
+  55   1        LCD_WR_REG(0xC4);     
+  56   1        LCD_WR_DATA8(0x20); //VDV, 0x20:0v
+  57   1      
+  58   1        LCD_WR_REG(0xC6);     
+  59   1        LCD_WR_DATA8(0x0F); //0x0F:60Hz         
+  60   1      
+  61   1        LCD_WR_REG(0xD0);     
+  62   1        LCD_WR_DATA8(0xA4);
+  63   1        LCD_WR_DATA8(0xA1); 
+  64   1      
+  65   1        LCD_WR_REG(0xE0);
+  66   1        LCD_WR_DATA8(0xD0);   
+  67   1        LCD_WR_DATA8(0x08);   
+  68   1        LCD_WR_DATA8(0x0E);   
+  69   1        LCD_WR_DATA8(0x09);   
+  70   1        LCD_WR_DATA8(0x09);   
+  71   1        LCD_WR_DATA8(0x05);   
+  72   1        LCD_WR_DATA8(0x31);   
+  73   1        LCD_WR_DATA8(0x33);   
+  74   1        LCD_WR_DATA8(0x48);   
+  75   1        LCD_WR_DATA8(0x17);   
+  76   1        LCD_WR_DATA8(0x14);   
+  77   1        LCD_WR_DATA8(0x15);   
+  78   1        LCD_WR_DATA8(0x31);   
+  79   1        LCD_WR_DATA8(0x34);   
+  80   1      
+  81   1        LCD_WR_REG(0xE1);     
+  82   1        LCD_WR_DATA8(0xD0);   
+  83   1        LCD_WR_DATA8(0x08);   
+  84   1        LCD_WR_DATA8(0x0E);   
+  85   1        LCD_WR_DATA8(0x09);   
+  86   1        LCD_WR_DATA8(0x09);   
+  87   1        LCD_WR_DATA8(0x15);   
+  88   1        LCD_WR_DATA8(0x31);   
+  89   1        LCD_WR_DATA8(0x33);   
+  90   1        LCD_WR_DATA8(0x48);   
+  91   1        LCD_WR_DATA8(0x17);   
+  92   1        LCD_WR_DATA8(0x14);   
+  93   1        LCD_WR_DATA8(0x15);   
+  94   1        LCD_WR_DATA8(0x31);   
+  95   1        LCD_WR_DATA8(0x34);
+  96   1        LCD_WR_REG(0x21); 
+  97   1      
+  98   1        LCD_WR_REG(0x29);
+  99   1      } 
+ 100          /******************************************************************************
+ 101                函数说明：状态4设置选项 进入闹钟或者时间
+ 102                入口数据：无
+ 103                返回值：  无
+ 104          ******************************************************************************/
+ 105          //void ClockorTime(u8 state)
+ 106          //{
+ 107          //  if(state==5)
+ 108          //    Show_StringandChinese(X_Position+20,60, "设置页面1-时间设置",WHITE,BLUE,24,0);
+ 109          //    Show_StringandChinese(X_Position+20,150,"设置页面2-闹钟设置",WHITE,BLUE,24,0);
+ 110          //}
+ 111          /******************************************************************************
+ 112                函数说明：状态7设置界面 设置时间
+ 113                入口数据：无
+ 114                返回值：  无
+ 115          ******************************************************************************/
+ 116          void Page_Content1_2_3(mode)  // 主界面1-2-3下的第三层
+C51 COMPILER V9.60.0.0   LCD_DISPLAY                                                       09/18/2025 19:01:30 PAGE 3   
+
+ 117          {   
+ 118   1      
+ 119   1          if(mode==7)
+ 120   1          {
+ 121   2            Show_StringandChinese(X_Position+20,60, "设置页面1-时间设置",WHITE,BLUE,24,0);
+ 122   2            LCD_ShowIntNum(X_Position+50,Y_Position+100,YEAR,2,WHITE,RED,24);
+ 123   2            Show_StringandChinese(X_Position+74,Y_Position+100,"年",WHITE,RED,24,0);
+ 124   2            LCD_ShowIntNum(X_Position+98,Y_Position+100,MONTH,2,WHITE,RED,24);
+ 125   2            Show_StringandChinese(X_Position+122,Y_Position+100,"月",WHITE,RED,24,0);
+ 126   2            LCD_ShowIntNum(X_Position+144,Y_Position+100,DAY,2,WHITE,RED,24);
+ 127   2            Show_StringandChinese(X_Position+168,Y_Position+100,"日",WHITE,RED,24,0);
+ 128   2            
+ 129   2            LCD_ShowIntNum(X_Position+32+38,Y_Position+150,HOUR,2,WHITE,RED,24);//状态1下显示时分秒 年月日
+ 130   2            LCD_ShowChar(X_Position+56+38,Y_Position+150,':',WHITE,RED,24,0);
+ 131   2            LCD_Fill(X_Position+56+38+12,Y_Position+150,X_Position+56+24+38,Y_Position+150+24,RED);     
+ 132   2            LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,MIN,2,WHITE,RED,24);
+ 133   2            LCD_ShowChar(X_Position+80+12+12+38,Y_Position+150,':',WHITE,RED,24,0);
+ 134   2            LCD_Fill(X_Position+80+24+12+38,Y_Position+150,X_Position+80+24+12+38+12,Y_Position+150+24,RED);      
+ 135   2            LCD_ShowIntNum(X_Position+124+38,Y_Position+150,SEC,2,WHITE,RED,24);
+ 136   2          }
+ 137   1          
+ 138   1          
+ 139   1          if((mode>=9)&&(mode<=14))
+ 140   1          {   
+ 141   2              Show_StringandChinese(X_Position+20,60, "设置页面1-时间设置",WHITE,BLUE,24,0);
+ 142   2              Show_StringandChinese(X_Position+74,Y_Position+100,"年",WHITE,RED,24,0);
+ 143   2              Show_StringandChinese(X_Position+122,Y_Position+100,"月",WHITE,RED,24,0);
+ 144   2              Show_StringandChinese(X_Position+168+2,Y_Position+100,"日",WHITE,RED,24,0);
+ 145   2              LCD_ShowChar(X_Position+56+38,Y_Position+150,':',WHITE,RED,24,0);
+ 146   2              LCD_ShowChar(X_Position+80+12+12+38,Y_Position+150,':',WHITE,RED,24,0);
+ 147   2              LCD_Fill(X_Position+56+12+38,Y_Position+150,X_Position+56+24+38,Y_Position+150+24,RED);   
+ 148   2              LCD_Fill(X_Position+80+24+12+38,Y_Position+150,X_Position+80+24+12+38+8,Y_Position+150+24,RED);     
+ 149   2            if(mode==9)
+ 150   2              { 
+ 151   3                LCD_ShowIntNum(X_Position+50,Y_Position+100,YEAR,2,BLUE,BLACK,24);
+ 152   3                LCD_ShowIntNum(X_Position+98,Y_Position+100,MONTH,2,WHITE,RED,24);    
+ 153   3                LCD_ShowIntNum(X_Position+146,Y_Position+100,DAY,2,WHITE,RED,24);                   
+ 154   3                LCD_ShowIntNum(X_Position+32+38,Y_Position+150,HOUR,2,WHITE,RED,24);//状态1下显示时分秒 年月日              
+             -        
+ 155   3                LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,MIN,2,WHITE,RED,24);                  
+ 156   3                LCD_ShowIntNum(X_Position+124+38,Y_Position+150,SEC,2,WHITE,RED,24);
+ 157   3              }
+ 158   2                if(mode==10)
+ 159   2              {         
+ 160   3                LCD_ShowIntNum(X_Position+50,Y_Position+100,YEAR,2,WHITE,RED,24);       
+ 161   3                LCD_ShowIntNum(X_Position+98,Y_Position+100,MONTH,2,BLUE,BLACK,24); 
+ 162   3                LCD_ShowIntNum(X_Position+146,Y_Position+100,DAY,2,WHITE,RED,24);                 
+ 163   3                LCD_ShowIntNum(X_Position+32+38,Y_Position+150,HOUR,2,WHITE,RED,24);//状态1下显示时分秒 年月日              
+             -  
+ 164   3                LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,MIN,2,WHITE,RED,24);            
+ 165   3                LCD_ShowIntNum(X_Position+124+38,Y_Position+150,SEC,2,WHITE,RED,24);
+ 166   3              }
+ 167   2              if(mode==11)
+ 168   2              {         
+ 169   3                LCD_ShowIntNum(X_Position+50,Y_Position+100,YEAR,2,WHITE,RED,24);   
+ 170   3                LCD_ShowIntNum(X_Position+98,Y_Position+100,MONTH,2,WHITE,RED,24);          
+ 171   3                LCD_ShowIntNum(X_Position+146,Y_Position+100,DAY,2,BLUE,BLACK,24);                  
+ 172   3                LCD_ShowIntNum(X_Position+32+38,Y_Position+150,HOUR,2,WHITE,RED,24);//状态1下显示时分秒 年月日              
+ 173   3                LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,MIN,2,WHITE,RED,24);              
+ 174   3                LCD_ShowIntNum(X_Position+124+38,Y_Position+150,SEC,2,WHITE,RED,24);
+ 175   3              }
+ 176   2                  if(mode==12)
+C51 COMPILER V9.60.0.0   LCD_DISPLAY                                                       09/18/2025 19:01:30 PAGE 4   
+
+ 177   2              {         
+ 178   3                LCD_ShowIntNum(X_Position+50,Y_Position+100,YEAR,2,WHITE,RED,24);         
+ 179   3                LCD_ShowIntNum(X_Position+98,Y_Position+100,MONTH,2,WHITE,RED,24);      
+ 180   3                LCD_ShowIntNum(X_Position+146,Y_Position+100,DAY,2,WHITE,RED,24);                   
+ 181   3                LCD_ShowIntNum(X_Position+32+38,Y_Position+150,HOUR,2,BLUE,BLACK,24);//状态1下显示时分秒 年月日         
+ 182   3                LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,MIN,2,WHITE,RED,24);            
+ 183   3                LCD_ShowIntNum(X_Position+124+38,Y_Position+150,SEC,2,WHITE,RED,24);
+ 184   3              }
+ 185   2                  if(mode==13)
+ 186   2              {         
+ 187   3                LCD_ShowIntNum(X_Position+50,Y_Position+100,YEAR,2,WHITE,RED,24); 
+ 188   3                LCD_ShowIntNum(X_Position+98,Y_Position+100,MONTH,2,WHITE,RED,24);          
+ 189   3                LCD_ShowIntNum(X_Position+146,Y_Position+100,DAY,2,WHITE,RED,24);             
+ 190   3                LCD_ShowIntNum(X_Position+32+38,Y_Position+150,HOUR,2,WHITE,RED,24);//状态1下显示时分秒 年月日              
+             -  
+ 191   3                LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,MIN,2,BLUE,BLACK,24);               
+ 192   3                LCD_ShowIntNum(X_Position+124+38,Y_Position+150,SEC,2,WHITE,RED,24);
+ 193   3              }
+ 194   2                  if(mode==14)
+ 195   2              {         
+ 196   3                LCD_ShowIntNum(X_Position+50,Y_Position+100,YEAR,2,WHITE,RED,24);       
+ 197   3                LCD_ShowIntNum(X_Position+98,Y_Position+100,MONTH,2,WHITE,RED,24);        
+ 198   3                LCD_ShowIntNum(X_Position+146,Y_Position+100,DAY,2,WHITE,RED,24);                   
+ 199   3                LCD_ShowIntNum(X_Position+32+38,Y_Position+150,HOUR,2,WHITE,RED,24);//状态1下显示时分秒 年月日            
+ 200   3                LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,MIN,2,WHITE,RED,24);                
+ 201   3                LCD_ShowIntNum(X_Position+124+38,Y_Position+150,SEC,2,BLUE,BLACK,24);
+ 202   3              }
+ 203   2          }
+ 204   1          if(mode==8)
+ 205   1          {
+ 206   2            Show_StringandChinese(X_Position+20,60, "设置页面2-闹钟设置",WHITE,BLUE,24,0);
+ 207   2            LCD_ShowIntNum(X_Position+32+38,Y_Position+150,ALAHOUR,2,WHITE,RED,24);//状态1下显示时分秒 年月日
+ 208   2            LCD_ShowChar(X_Position+56+38,Y_Position+150,':',WHITE,RED,24,0);
+ 209   2            LCD_Fill(X_Position+56+12+38,Y_Position+150,X_Position+56+24+38,Y_Position+150+24,RED);     
+ 210   2            LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,ALAMIN,2,WHITE,RED,24);
+ 211   2            LCD_ShowChar(X_Position+80+12+12+38,Y_Position+150,':',WHITE,RED,24,0);
+ 212   2            LCD_Fill(X_Position+80+24+12+38,Y_Position+150,X_Position+80+24+12+38+12,Y_Position+150+24,RED);      
+ 213   2            LCD_ShowIntNum(X_Position+124+38,Y_Position+150,ALASEC,2,WHITE,RED,24);
+ 214   2          }
+ 215   1          if((mode>=15)&&(mode<=17))
+ 216   1          {
+ 217   2            Show_StringandChinese(X_Position+20,60, "设置页面2-闹钟设置",WHITE,BLUE,24,0);
+ 218   2            
+ 219   2            LCD_ShowChar(X_Position+56+38,Y_Position+150,':',WHITE,RED,24,0);
+ 220   2            LCD_Fill(X_Position+56+12+38,Y_Position+150,X_Position+56+24+38,Y_Position+150+24,RED);
+ 221   2            LCD_ShowChar(X_Position+80+12+12+38,Y_Position+150,':',WHITE,RED,24,0);
+ 222   2            LCD_Fill(X_Position+80+24+12+38,Y_Position+150,X_Position+80+24+12+38+12,Y_Position+150+24,RED);
+ 223   2            if(mode==15)
+ 224   2            { 
+ 225   3                LCD_ShowIntNum(X_Position+32+38,Y_Position+150,ALAHOUR,2,BLUE,BLACK,24);//状态1下显示时分秒 年月日      
+             -          
+ 226   3                LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,ALAMIN,2,WHITE,RED,24);                   
+ 227   3                LCD_ShowIntNum(X_Position+124+38+4,Y_Position+150,ALASEC,2,WHITE,RED,24);
+ 228   3            }
+ 229   2            if(mode==16)
+ 230   2            {
+ 231   3                LCD_ShowIntNum(X_Position+32+38,Y_Position+150,ALAHOUR,2,WHITE,RED,24);//状态1下显示时分秒 年月日       
+             -        
+ 232   3                LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,ALAMIN,2,BLUE,BLACK,24);                
+ 233   3                LCD_ShowIntNum(X_Position+124+38+4,Y_Position+150,ALASEC,2,WHITE,RED,24);
+ 234   3            }
+ 235   2            if(mode==17)
+C51 COMPILER V9.60.0.0   LCD_DISPLAY                                                       09/18/2025 19:01:30 PAGE 5   
+
+ 236   2            {
+ 237   3                LCD_ShowIntNum(X_Position+32+38,Y_Position+150,ALAHOUR,2,WHITE,RED,24);//状态1下显示时分秒 年月日       
+             -        
+ 238   3                LCD_ShowIntNum(X_Position+68+12+38,Y_Position+150,ALAMIN,2,WHITE,RED,24);   
+ 239   3                LCD_ShowIntNum(X_Position+124+38+4,Y_Position+150,ALASEC,2,BLUE,BLACK,24);
+ 240   3            }
+ 241   2          }
+ 242   1      }
+ 243          /******************************************************************************
+ 244                函数说明：状态4设置界面 设置闹钟，设置时间
+ 245                入口数据：无
+ 246                返回值：  无
+ 247          ******************************************************************************/
+ 248          void Page_Content1_2(void)  // 主界面1下的第二层
+ 249          { 
+ 250   1        Show_StringandChinese(X_Position+20,60, "设置页面1-时间设置",WHITE,BLUE,24,0);
+ 251   1        Show_StringandChinese(X_Position+20,150,"设置页面2-闹钟设置",WHITE,BLUE,24,0);      
+ 252   1      }
+ 253          /******************************************************************************
+ 254                函数说明：LCD固定页面显示函数  状态1
+ 255                入口数据：无
+ 256                返回值：  无
+ 257          ******************************************************************************/
+ 258          void Page_Content_1(u16 year,u16 month,u16 day,u16 hour,u16 min,u16 sec,u16 shi_val,u16 fen_val,u16 miao_v
+             -al,float val)  // 固定页面_1，显示一些可变的内容
+ 259          { 
+ 260   1        //sprintf函数对应的是u16类型，所以参数值都是u16类型
+ 261   1        u8 str[30];
+ 262   1        Show_StringandChinese(95,0,"迷你小闹钟",WHITE,RED,24,0);
+ 263   1        LCD_DrawLine(0,30,320,30,WHITE);    //分割线
+ 264   1        
+ 265   1        sprintf(str, "%02u", year);
+ 266   1        Show_StringandChinese(X_Position+4,50,"日期",WHITE,RED,24,0); 
+ 267   1        Show_StringandChinese(X_Position+110,50,str,WHITE,RED,24,0);
+ 268   1        Show_StringandChinese(X_Position+134,50,"年",WHITE,RED,24,0);
+ 269   1        sprintf(str, "%02u", month);
+ 270   1        Show_StringandChinese(X_Position+4,Y_Position+60,"时间",WHITE,RED,24,0);
+ 271   1        Show_StringandChinese(X_Position+158,50,str,WHITE,RED,24,0);
+ 272   1        Show_StringandChinese(X_Position+182,50,"月",WHITE,RED,24,0);
+ 273   1        sprintf(str, "%02u", day);
+ 274   1        Show_StringandChinese(X_Position+4,Y_Position+96,"闹钟",WHITE,RED,24,0);
+ 275   1        Show_StringandChinese(X_Position+206,50,str,WHITE,RED,24,0);
+ 276   1        Show_StringandChinese(X_Position+230,50,"日",WHITE,RED,24,0);
+ 277   1        Show_StringandChinese(X_Position+4,Y_Position+156,"电源电压",WHITE,RED,24,0);
+ 278   1        
+ 279   1        sprintf(str, "%02u", hour);//显示时间
+ 280   1        Show_StringandChinese(X_Position+110, Y_Position+60, str, WHITE, RED, 24, 0);
+ 281   1        Show_StringandChinese(X_Position+134, Y_Position+60, ":", WHITE, RED, 24, 0);    
+ 282   1        sprintf(str, "%02u", min);
+ 283   1        Show_StringandChinese(X_Position+158, Y_Position+60, str, WHITE, RED, 24, 0);
+ 284   1        Show_StringandChinese(X_Position+182, Y_Position+60, ":", WHITE, RED, 24, 0); 
+ 285   1        sprintf(str, "%02u", sec);
+ 286   1        Show_StringandChinese(X_Position+206, Y_Position+60, str, WHITE, RED, 24, 0);
+ 287   1        
+ 288   1        sprintf(str, "%02u", shi_val);//显示闹钟
+ 289   1        Show_StringandChinese(X_Position+110, Y_Position+96, str, WHITE, RED, 24, 0);
+ 290   1        Show_StringandChinese(X_Position+134, Y_Position+96, ":", WHITE, RED, 24, 0);    
+ 291   1        sprintf(str, "%02u", fen_val);
+ 292   1        Show_StringandChinese(X_Position+158, Y_Position+96, str, WHITE, RED, 24, 0);
+ 293   1        Show_StringandChinese(X_Position+182, Y_Position+96, ":", WHITE, RED, 24, 0); 
+ 294   1        sprintf(str, "%02u", miao_val);
+ 295   1        Show_StringandChinese(X_Position+206, Y_Position+96, str, WHITE, RED, 24, 0);
+C51 COMPILER V9.60.0.0   LCD_DISPLAY                                                       09/18/2025 19:01:30 PAGE 6   
+
+ 296   1        LCD_DrawLine(0,Y_Position+32*3+24+8,X_Position+320,Y_Position+32*3+24+8,WHITE); 
+ 297   1        
+ 298   1        sprintf(str, "%.2f", val);
+ 299   1        Show_StringandChinese(X_Position+110,Y_Position+156,str,WHITE,RED,24,0);  
+ 300   1      }
+ 301          /******************************************************************************
+ 302                函数说明：LCD数据显示函数
+ 303                入口数据：无
+ 304                返回值：  无
+ 305          ******************************************************************************/
+ 306          void VEP_All_Display() 
+ 307          {
+ 308   1        LCD_ShowIntNum(X_Position+76,Y_Position-32,12,6,GREEN,BLACK,24);
+ 309   1        LCD_ShowIntNum(X_Position+76,Y_Position,23,6,GREEN,BLACK,24);
+ 310   1        LCD_ShowIntNum(X_Position+76,Y_Position+32,34,4,GREEN,BLACK,24);
+ 311   1        LCD_ShowIntNum(X_Position+76,Y_Position+32*2,45,3,GREEN,BLACK,24);
+ 312   1        LCD_ShowIntNum(X_Position+76,Y_Position+32*3,56,3,GREEN,BLACK,24);
+ 313   1      
+ 314   1      }
+ 315          
+ 316          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   5143    ----
+   CONSTANT SIZE    =     94    ----
+   XDATA SIZE       =   ----      54
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

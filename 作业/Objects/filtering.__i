@@ -1,0 +1,1 @@
+"DRIVER\filtering.c" LARGE OPTIMIZE (8,SPEED) BROWSE INCDIR(.\APP;.\DRIVER;.\STC8HLib) DEBUG OBJECTEXTEND PRINT(.\Listings\filtering.lst) TABS (2) OBJECT(.\Objects\filtering.obj)
