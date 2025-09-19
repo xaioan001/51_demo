@@ -1,0 +1,62 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              09/19/2025 20:04:49 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\work\KEIL\ARM\C51\BIN\C51.EXE APP\main.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\APP;.\STC8HLib;
+                    -.\DRIVER) DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include "STC8H.H"
+   2          #include "STC8G_H_GPIO.h"
+   3          #include "STC8G_H_Delay.h"
+   4          #include "config.h"
+   5          #include "BEEP.h"
+   6          #include "type_def.h"
+   7          #include "STC8G_H_Timer.h"
+   8          #include "STC8G_H_UART.h"
+   9          #include "touch.h"
+  10          void main()
+  11          { 
+  12   1        u32 sysT0Tick;
+  13   1        u8 Touch_TEMP=0;
+  14   1        P_SW2 |= 0x80;/* 扩展寄存器访问使能 */  
+  15   1        GPIO_config(); 
+  16   1        beep_init();
+  17   1        Timer_config();
+  18   1        UART_config();
+  19   1        Touch_Config();
+  20   1        EA=1;
+  21   1        SaveTouchZeroValue(); //保存触摸零点值
+  22   1        while(1)
+  23   1        {
+  24   2            Touch_TEMP=GetTouchVal();
+  25   2          //ADC_TEMP = IIC_60S();
+  26   2          if(time0IntNum-sysT0Tick>1000)
+  27   2          {
+  28   3            sysT0Tick=time0IntNum;
+  29   3      //      printf("TK1 = %u.\n",TK_cnt[14]);
+  30   3      //      printf("TK1 = %u.\n",TK_cnt[13]);
+  31   3      //      printf("TK1 = %u.\n",TK_cnt[12]);
+  32   3      //      printf("TK1 = %u.\n",TK_cnt[7]);
+  33   3      //      printf("TK1 = %u.\n",TK_cnt[6]);
+  34   3          
+  35   3          }
+  36   2        }
+  37   1      }
+  38          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    110    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----       5
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

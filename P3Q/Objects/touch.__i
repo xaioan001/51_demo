@@ -1,0 +1,1 @@
+"DRIVER\touch.c" LARGE OPTIMIZE (8,SPEED) BROWSE INCDIR(.\APP;.\STC8HLib;.\DRIVER) DEBUG OBJECTEXTEND PRINT(.\Listings\touch.lst) TABS (2) OBJECT(.\Objects\touch.obj)

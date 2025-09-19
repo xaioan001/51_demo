@@ -1,0 +1,185 @@
+C51 COMPILER V9.60.0.0   TOUCH                                                             09/19/2025 20:04:50 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE TOUCH
+OBJECT MODULE PLACED IN .\Objects\touch.obj
+COMPILER INVOKED BY: D:\work\KEIL\ARM\C51\BIN\C51.EXE DRIVER\touch.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\APP;.\STC8H
+                    -Lib;.\DRIVER) DEBUG OBJECTEXTEND PRINT(.\Listings\touch.lst) TABS(2) OBJECT(.\Objects\touch.obj)
+
+line level    source
+
+   1          #include <STC8H.H>
+   2          #include "type_def.h"
+   3          #include  "Beep.h"
+   4          #include  "Touch.h"
+   5          #include  "STC8G_H_Delay.h"
+   6          
+   7          u8 B_ReadKeyOk = 0;
+   8          u16 TK_cnt[15] = 0;
+   9          u16 TK_zero[15] = 0;
+  10          
+  11          /**
+  12          ***********************************************************
+  13          * @brief  触摸按键的配置函数
+  14          * @param  
+  15          * @param  
+  16          * @return 
+  17          ***********************************************************
+  18          */
+  19          
+  20          void Touch_config()
+  21          {
+  22   1        TSCHEN1 = 0xC0;   //1100 0000  TK6、7
+  23   1        TSCHEN2 = 0x70;   //0111 0000    TK12、13、14
+  24   1        TSCFG1  = (1<<4) + 6; //开关电容工作频率 = fosc/(2*(TSCFG1[6:4]+1)), 放电时间(系统时钟周期数) 0(125) 1(25
+             -0) 2(500) 3(1000) 4(2000) 5(2500) 6(5000) 7(7500) 最小3
+  25   1        TSCFG2  = 1;    //配置触摸按键控制器的内部参考电压(AVCC的分压比), 0(1/4)  1(1/2)  2(5/8)  3(3/4)
+  26   1      //  TSCTRL = (1<<7) + (1<<5); //开始扫描, B7: TSGO,  B6: SINGLE,  B5: TSWAIT, B4: TSWUCS, B3: TSDCEN, B2: T
+             -SWUEN, B1 B0: TSSAMP
+  27   1        TSRT = 0x00;    //没有LED分时扫描
+  28   1        IE2 |= 0x80;    //允许触摸按键中断  
+  29   1      }
+  30          
+  31          /**
+  32          ***********************************************************
+  33          * @brief   获取触摸按键的键值
+  34          * @param  
+  35          * @param  
+  36          * @return  返回u8 型对应的键值序号，1，2，3，4
+  37          ***********************************************************
+  38          */
+  39          u8 GetTouchVal()
+  40          {
+  41   1        u8 touchKeyValue = 0;
+  42   1        u32 touchLongPressCount = 0;
+  43   1        u16 tkChaVal = 0;
+  44   1        if(B_ReadKeyOk)
+  45   1        {
+  46   2          B_ReadKeyOk = 0;
+  47   2          tkChaVal = TK_zero[14] - TK_cnt[14];
+  48   2          if((tkChaVal > TOUCHKEYVALUETH)&&(tkChaVal < TOUCHKEYMAX))
+  49   2          {
+  50   3            touchKeyValue = 1;
+  51   3            while((TK_zero[14] - TK_cnt[14]) > TOUCHKEYVALUETH);    
+  52   3            BeepMs(10);
+C51 COMPILER V9.60.0.0   TOUCH                                                             09/19/2025 20:04:50 PAGE 2   
+
+  53   3            return touchKeyValue;
+  54   3          }
+  55   2          tkChaVal = TK_zero[13] - TK_cnt[13];
+  56   2          if((tkChaVal > TOUCHKEYVALUETH)&&(tkChaVal < TOUCHKEYMAX))
+  57   2          {
+  58   3            touchKeyValue = 2;
+  59   3            while((TK_zero[13] - TK_cnt[13]) > TOUCHKEYVALUETH)
+  60   3            {
+  61   4              if(++touchLongPressCount > TOUCHKEYLONGPRESS)
+  62   4              {
+  63   5                touchKeyValue = 22;
+  64   5                BeepMs(10);
+  65   5              }
+  66   4            }       
+  67   3            BeepMs(10);
+  68   3            return touchKeyValue;
+  69   3          }   
+  70   2          tkChaVal = TK_zero[12] - TK_cnt[12];
+  71   2          if((tkChaVal > TOUCHKEYVALUETH)&&(tkChaVal < TOUCHKEYMAX))
+  72   2          {
+  73   3            touchKeyValue = 3;
+  74   3            while((TK_zero[12] - TK_cnt[12]) > TOUCHKEYVALUETH);    
+  75   3            BeepMs(10);
+  76   3            return touchKeyValue;
+  77   3          }   
+  78   2          tkChaVal = TK_zero[7] - TK_cnt[7];
+  79   2          if((tkChaVal > TOUCHKEYVALUETH)&&(tkChaVal < TOUCHKEYMAX))
+  80   2          {
+  81   3            touchKeyValue = 4;
+  82   3            while((TK_zero[7] - TK_cnt[7]) > TOUCHKEYVALUETH);    
+  83   3            BeepMs(10);
+  84   3            return touchKeyValue;
+  85   3          }
+  86   2          tkChaVal = TK_zero[6] - TK_cnt[6];
+  87   2          if((tkChaVal > TOUCHKEYVALUETH)&&(tkChaVal < TOUCHKEYMAX))
+  88   2          {
+  89   3            touchKeyValue = 5;
+  90   3            while((TK_zero[6] - TK_cnt[6]) > TOUCHKEYVALUETH)
+  91   3            {
+  92   4              if(++touchLongPressCount > TOUCHKEYLONGPRESS)
+  93   4              {
+  94   5                touchKeyValue = 55;
+  95   5                BeepMs(10);
+  96   5              }
+  97   4            }       
+  98   3            BeepMs(10);
+  99   3            return touchKeyValue;
+ 100   3          }     
+ 101   2        }
+ 102   1        return touchKeyValue;
+ 103   1      }
+ 104          
+ 105          /**
+ 106          ***********************************************************
+ 107          * @brief 保存上电时，没有按下触摸时的零点值
+ 108          * @param  
+ 109          * @param  
+ 110          * @return 
+ 111          ***********************************************************
+ 112          */
+ 113          
+ 114          void SaveTouchZeroValue()
+C51 COMPILER V9.60.0.0   TOUCH                                                             09/19/2025 20:04:50 PAGE 3   
+
+ 115          {
+ 116   1        u8 i = 0;
+ 117   1        for(i = 0; i < 20; i++)
+ 118   1        {
+ 119   2          TSCTRL = (1<<7) + (1<<6);
+ 120   2          delay_ms(20);
+ 121   2        }
+ 122   1        for(i = 0; i < 15; i++)
+ 123   1        {
+ 124   2          TK_zero[i] = TK_cnt[i];//保存零点
+ 125   2          printf("TK%bu = %u.\n",i,TK_zero[i]);
+ 126   2        } 
+ 127   1        
+ 128   1      }
+ 129          
+ 130          
+ 131          /**
+ 132          ***********************************************************
+ 133          * @brief   触摸按键的中断服务程序
+ 134          * @param  
+ 135          * @param  
+ 136          * @return 
+ 137          ***********************************************************
+ 138          */
+ 139          void  Touch_ISR(void) interrupt 35
+ 140          {
+ 141   1        u8  j;
+ 142   1        j = TSSTA2;
+ 143   1        if(j & 0x40)  //数据溢出, 错误处理(略)
+ 144   1        {
+ 145   2          TSSTA2 |= 0x40; //写1清零
+ 146   2        }
+ 147   1        if(j & 0x80)  //扫描完成
+ 148   1        {
+ 149   2          j &= 0x0f;
+ 150   2          TSSTA2 |= 0x80; //写1清零
+ 151   2          TK_cnt[j] = TSDAT;  //保存某个通道的读数  无低通滤波
+ 152   2          if(j == 14) B_ReadKeyOk = 1;  //读完一次循环
+ 153   2        }
+ 154   1      }
+ 155          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    804    ----
+   CONSTANT SIZE    =     13    ----
+   XDATA SIZE       =     61       8
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
